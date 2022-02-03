@@ -40,5 +40,4 @@ jobs:
           jfrog --version
           jfrog rt ping
           jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:latest codelinaro-aimet
-          jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet --build-name=aimet-build --build-number=${{ github.event.client_payload.tag_name }}
-          jfrog rt build-publish aimet-build ${{ github.event.client_payload.tag_name }}
+          jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet
