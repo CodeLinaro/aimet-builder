@@ -39,5 +39,5 @@ jobs:
         run: | 
           jfrog --version
           jfrog rt ping
-          jfrog rt docker-push codelinaro.jfrog.io/aimet:latest codelinaro-aimet
+          jfrog rt docker-push codelinaro.jfrog.io/codelinaro-aimet/aimet:latest codelinaro-aimet
         
