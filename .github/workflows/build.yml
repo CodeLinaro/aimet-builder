@@ -25,7 +25,7 @@ jobs:
         with:
           context: ./
           file: ./docker-util/Dockerfile
-          tags: aimet:latest
+          tags: codelinaro-codelinaro-aimet.jfrog.io/aimet:latest
           load: true
           build-args: |
             ARTIFACT_TAG=${{ github.event.client_payload.tag_name }}
@@ -39,5 +39,5 @@ jobs:
         run: | 
           jfrog --version
           jfrog rt ping
-          jfrog rt docker-push codelinaro.jfrog.io/codelinaro-aimet/aimet:latest codelinaro-aimet
+          jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:latest codelinaro-aimet
         
