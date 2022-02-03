@@ -25,10 +25,10 @@ jobs:
         with:
           context: ./
           file: ./docker-util/Dockerfile
-          tags: codelinaro-codelinaro-aimet.jfrog.io/aimet:latest
+          tags: |
+            codelinaro-codelinaro-aimet.jfrog.io/aimet:latest
+            codelinaro-codelinaro-aimet.jfrog.io/aimet:${{ github.event.client_payload.tag_name }}
           load: true
-          build-args: |
-            ARTIFACT_TAG=${{ github.event.client_payload.tag_name }}
 
       - name: Setup jFrog CLI
         uses: jfrog/setup-jfrog-cli@v1
@@ -40,4 +40,5 @@ jobs:
           jfrog --version
           jfrog rt ping
           jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:latest codelinaro-aimet
-        
+          jfrog rt docker-push codelinaro-codelinaro-aimet.jfrog.io/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet --build-name=aimet-build --build-number=${{ github.event.client_payload.tag_name }}
+          jfrog rt build-publish aimet-build ${{ github.event.client_payload.tag_name }}
