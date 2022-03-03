@@ -2,7 +2,7 @@ name: Build
 
 on:
   repository_dispatch:
-    types: [repo-released]
+    types: [changed-docker-file]
 
 jobs:
 
@@ -24,10 +24,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./
-          file: ./docker-util/Dockerfile
+          file: ${{ github.event.client_payload.changed-docker-file }}
           tags: |
             artifacts.codelinaro.org/codelinaro-aimet/aimet:latest
-            artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }}
           load: true
 
       - name: Setup jFrog CLI
@@ -40,4 +39,3 @@ jobs:
           jfrog --version
           jfrog rt ping
           jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest codelinaro-aimet
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet
