@@ -2,16 +2,22 @@ name: Build
 
 on:
   repository_dispatch:
-    types: [repo-released]
+    types: [changed-build-file]
+  workflow_dispatch:
+    inputs:
+      build_file:
+        required: false
+        default: 'Dockerfile'
+        description: 'Build file(s)'
+        type: string
 
 jobs:
-
   build:
     name: Build and Publish Artifact
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Out Repo
+      - name: Check out repo
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.client_payload.repo_name }}
@@ -20,14 +26,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build AIMET
+      - name: Parse Dockerfile
+        env:
+          file: ${{ github.event.client_payload.changed-build-file }}
+        run: |
+          echo "BUILD_TYPE="$(echo ${file} | cut -d. -f2)"" >> $GITHUB_ENV
+
+      - name: Build
         uses: docker/build-push-action@v2
         with:
           context: ./
-          file: ./docker-util/Dockerfile
-          tags: |
-            artifacts.codelinaro.org/codelinaro-aimet/aimet:latest
-            artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }}
+          file: ${{ github.event.client_payload.changed-build-file }}
+          tags: artifacts.codelinaro.org/codelinaro-aimet/aimet:latest.${{ env.BUILD_TYPE }}
           load: true
 
       - name: Setup jFrog CLI
@@ -35,9 +45,8 @@ jobs:
         env:
           JF_ARTIFACTORY_SERVER: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
 
-      - name: Publish Docker Image
-        run: | 
+      - name: Publish image
+        run: |
           jfrog --version
           jfrog rt ping
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest codelinaro-aimet
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet
+          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet-dev:latest.${{ env.BUILD_TYPE }} codelinaro-aimet
