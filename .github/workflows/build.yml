@@ -43,4 +43,4 @@ jobs:
         run: |
           jfrog --version
           jfrog rt ping
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest.${{ env.BUILD_TYPE }} codelinaro-aimet
+          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet-dev:latest.${{ env.BUILD_TYPE }} codelinaro-aimet
