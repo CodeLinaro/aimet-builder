@@ -2,16 +2,22 @@ name: Build
 
 on:
   repository_dispatch:
-    types: [changed-docker-file]
+    types: [changed-build-file]
+  workflow_dispatch:
+    inputs:
+      build_file:
+        required: false
+        default: 'Dockerfile'
+        description: 'Build file(s)'
+        type: string
 
 jobs:
-
   build:
     name: Build and Publish Artifact
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Out Repo
+      - name: Check out repo
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.client_payload.repo_name }}
@@ -22,15 +28,15 @@ jobs:
 
       - name: Parse Dockerfile
         env:
-          file: ${{ github.event.client_payload.changed-docker-file }}
+          file: ${{ github.event.client_payload.changed-build-file }}
         run: |
           echo "BUILD_TYPE="$(echo ${file} | cut -d. -f2)"" >> $GITHUB_ENV
 
-      - name: Build Dockerfile
+      - name: Build
         uses: docker/build-push-action@v2
         with:
           context: ./
-          file: ${{ github.event.client_payload.changed-docker-file }}
+          file: ${{ github.event.client_payload.changed-build-file }}
           tags: artifacts.codelinaro.org/codelinaro-aimet/aimet:latest.${{ env.BUILD_TYPE }}
           load: true
 
@@ -39,7 +45,7 @@ jobs:
         env:
           JF_ARTIFACTORY_SERVER: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
 
-      - name: Publish Docker Image
+      - name: Publish image
         run: |
           jfrog --version
           jfrog rt ping
