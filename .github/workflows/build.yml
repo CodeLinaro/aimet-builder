@@ -2,42 +2,47 @@ name: Build
 
 on:
   repository_dispatch:
-    types: [repo-released]
+    types:
+      - push-dispatch
+      - manual-dispatch
 
 jobs:
-
   build:
-    name: Build and Publish Artifact
     runs-on: ubuntu-latest
-
+    name: Build and publish
     steps:
-      - name: Check Out Repo
+      - name: Check out code repository
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.client_payload.repo_name }}
           ref: ${{ github.event.client_payload.ref }}
-
+          token: ${{ secrets.GH_PAT }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-
-      - name: Build AIMET
+      - name: Parse build type
+        env:
+          file: ${{ github.event.client_payload.changed-build }}
+        run: |
+          if [[ $file == *"."* ]]; then
+            echo BUILD_TYPE=".${file##*.}" >> "$GITHUB_ENV"
+          fi
+          echo "$BUILD_TYPE"
+      - name: Build image
         uses: docker/build-push-action@v2
         with:
           context: ./
-          file: ./docker-util/Dockerfile
-          tags: |
-            artifacts.codelinaro.org/codelinaro-aimet/aimet:latest
-            artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }}
+          file: ${{ github.event.client_payload.changed-build }}
+          tags: artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest${{ env.BUILD_TYPE }}
           load: true
-
+          push: false
       - name: Setup jFrog CLI
-        uses: jfrog/setup-jfrog-cli@v1
+        uses: jfrog/setup-jfrog-cli@v2
         env:
-          JF_ARTIFACTORY_SERVER: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
-
-      - name: Publish Docker Image
+          JF_ENV_SERVER: ${{ secrets.JF_ARTIFACTORY_SERVER }}
+      - name: Publish image
         run: | 
-          jfrog --version
-          jfrog rt ping
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest codelinaro-aimet
-          jfrog rt docker-push artifacts.codelinaro.org/codelinaro-aimet/aimet:${{ github.event.client_payload.tag_name }} codelinaro-aimet
+          if [ ! -z $BUILD_TYPE ] ; then
+            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest${{ env.BUILD_TYPE }}
+          else
+            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest
+          fi
