@@ -32,7 +32,7 @@ jobs:
         with:
           context: ./
           file: ${{ github.event.client_payload.changed-build }}
-          tags: artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest${{ env.BUILD_TYPE }}
+          tags: artifacts.codelinaro.org/codelinaro-aimet/aimet:latest${{ env.BUILD_TYPE }}
           load: true
           push: false
       - name: Setup jFrog CLI
@@ -42,7 +42,7 @@ jobs:
       - name: Publish image
         run: | 
           if [ ! -z $BUILD_TYPE ] ; then
-            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest${{ env.BUILD_TYPE }}
+            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest${{ env.BUILD_TYPE }}
           else
-            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet-test:latest
+            jf docker push artifacts.codelinaro.org/codelinaro-aimet/aimet:latest
           fi
