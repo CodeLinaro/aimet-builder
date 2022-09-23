@@ -30,7 +30,7 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v2
         with:
-          context: ./
+          context: ./Jenkins
           file: ${{ github.event.client_payload.changed-build }}
           tags: artifacts.codelinaro.org/codelinaro-aimet/aimet:latest${{ env.BUILD_TYPE }}
           load: true
